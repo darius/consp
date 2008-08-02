@@ -2,7 +2,7 @@
 
 (define (report x)
   (cond (#f (display x)
-	    (newline))))
+            (newline))))
 
 (define (loud-load . path-components)
   (let ((filename (make-pathname path-components)))
@@ -11,14 +11,14 @@
 
 (define (make-pathname path-components)
   (apply string-append
-	 (intercalate file-separator path-components)))
+         (intercalate file-separator path-components)))
 
 (define (intercalate between elements)
   (cons (car elements)
-	(let loop ((rest (cdr elements)))
-	  (if (null? rest)
-	      '()
-	      `(,between ,(car rest) ,@(loop (cdr rest)))))))
+        (let loop ((rest (cdr elements)))
+          (if (null? rest)
+              '()
+              `(,between ,(car rest) ,@(loop (cdr rest)))))))
 
 (loud-load "metacirc" "preadapter.scm")
 (loud-load "consp.scm")

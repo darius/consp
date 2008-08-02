@@ -10,8 +10,8 @@
   (let reading ()
     (let ((x (read port)))
       (if (eof-object? x) 
-	  '()
-	  (cons x (reading))))))
+          '()
+          (cons x (reading))))))
 
 (define (acons key value a-list)
   (cons (cons key value) a-list))
@@ -30,13 +30,13 @@
 (define (all ok? ls)
   (or (null? ls)
       (and (ok? (car ls))
-	   (all ok? (cdr ls)))))
+           (all ok? (cdr ls)))))
 
 (define (filter include? ls)
   (cond ((null? ls) '())
-	((include? (car ls))
-	 (cons (car ls) (filter include? (cdr ls))))
-	(else (filter include? (cdr ls)))))
+        ((include? (car ls))
+         (cons (car ls) (filter include? (cdr ls))))
+        (else (filter include? (cdr ls)))))
 
 (define (scope-values scope)
   (map (lambda (var) (eval var scope))
@@ -44,16 +44,16 @@
 
 (define (string-index key string)
   (let ((L (string-length key))
-	(M (string-length string)))
+        (M (string-length string)))
     (define (matches-at? i k)
       (cond ((= k L) i)
-	    (else (and (char=? (string-ref string (+ i k))
-			       (string-ref key k))
-		       (matches-at? i (+ k 1))))))
+            (else (and (char=? (string-ref string (+ i k))
+                               (string-ref key k))
+                       (matches-at? i (+ k 1))))))
     (let loop ((i 0))
       (and (<= (+ i L) M)
-	   (or (matches-at? i 0)
-	       (loop (+ i 1)))))))
+           (or (matches-at? i 0)
+               (loop (+ i 1)))))))
 
 (define (make-sealer name)
   (define p (make-record-type name 1 #f))
@@ -66,12 +66,12 @@
 
 (define (lookup publisher key) 
   (cond ((assoc (cons publisher key) (get repository)) => cdr)
-	(else #f)))
+        (else #f)))
 
 (define (make-publish! publisher) 
   (lambda (key object) 
     (put! repository
-	  (acons (cons publisher key) object (get repository)))))
+          (acons (cons publisher key) object (get repository)))))
 
 
 ;; Factories.
@@ -104,8 +104,8 @@
 
 (define (components x)
   (cond ((pair? x) (list (car x) (cdr x)))
-	((vector? x) (vector->list x))
-	(else '())))
+        ((vector? x) (vector->list x))
+        (else '())))
 
 (define (immutable-type? x)
   (or (null? x)
@@ -113,9 +113,9 @@
       (number? x)
       (symbol? x)
       (eof-object? x)
-      (string? x)			; Of course, pairs, vectors, and 
-      (pair? x)				; strings are not immutable in 
-      (vector? x)			; standard Scheme.
+      (string? x)                       ; Of course, pairs, vectors, and 
+      (pair? x)                         ; strings are not immutable in 
+      (vector? x)                       ; standard Scheme.
       (and (procedure? x) (memq x primitive-procedures))))
 
 (define primitive-procedures
@@ -142,36 +142,36 @@
   (define (eval-use entry)
     (use-entry.set-value! entry circular-use-tag)
     (let ((value (eval `(begin ,@(use-entry.contents entry))
-		       (sprout scope))))
+                       (sprout scope))))
       (use-entry.set-value! entry value)
       value))
 
   (lambda (filename)
     (let ((contents (snarf filename)))
-      (cond ((and #f			; TODO: reenable this after we can
-					; ensure the caching is safe.
-		  (assoc filename (get use-table)))
-	     => (lambda (pair)
-		  (let ((entry (cdr pair)))
-		    (if (equal? (use-entry.contents entry) contents)
-			(let ((value (use-entry.value entry)))
-			  (if (eq? value circular-use-tag)
-			      (panic "Circular USE" filename))
-			  value)
-			(begin (use-entry.set-contents! entry contents)
-			       (eval-use entry))))))
-	    (else
-	     (let ((entry (make-use-entry contents '*)))
-	       ; (put! use-table (acons filename entry (get use-table)))
-	       (eval-use entry)))))))
+      (cond ((and #f                    ; TODO: reenable this after we can
+                                        ; ensure the caching is safe.
+                  (assoc filename (get use-table)))
+             => (lambda (pair)
+                  (let ((entry (cdr pair)))
+                    (if (equal? (use-entry.contents entry) contents)
+                        (let ((value (use-entry.value entry)))
+                          (if (eq? value circular-use-tag)
+                              (panic "Circular USE" filename))
+                          value)
+                        (begin (use-entry.set-contents! entry contents)
+                               (eval-use entry))))))
+            (else
+             (let ((entry (make-use-entry contents '*)))
+               ; (put! use-table (acons filename entry (get use-table)))
+               (eval-use entry)))))))
 
 
 ;; Support for limited filesystems.
 
 (define (assert-safe-path filename)
   (if (or (= 0 (string-length filename))
-	  (char=? #\/ (string-ref filename 0))
-	  (string-index ".." filename))
+          (char=? #\/ (string-ref filename 0))
+          (string-index ".." filename))
       (panic "Illegal USE filename" filename))
   void)
 
@@ -196,12 +196,12 @@
   (lambda ()
     (let ((mailbox (lookup receiver 'mailbox)))
       (and (not (mailbox-empty? mailbox))
-	   (pop! (mailbox.inbox mailbox))))))
+           (pop! (mailbox.inbox mailbox))))))
 
 (define (make-send sender)
   (lambda (receiver message)
     (mailbox-enqueue! (lookup receiver 'mailbox)
-		      (acons 'sender sender message))))
+                      (acons 'sender sender message))))
 
 
 ;; A user's domain.  A user has a NAME, a mutable scope to interact
@@ -247,7 +247,7 @@
 
   (define! base-scope 'who-am-i name) ;Hm, should this be in the pure scope?
   (define! base-scope 'snarf-program (lambda (filename)
-				       `(begin ,@(snarf filename))))
+                                       `(begin ,@(snarf filename))))
 
   ; XXX should load be defined in base-scope, but extend interactive-scope?
   (define! base-scope 'load                  do-load)
@@ -275,14 +275,14 @@
   (display "> ")
   (let ((e (read)))
     (cond ((or (eof-object? e) (eq? 'quit e))
-	   void)
-	  (else (print (eval e scope))
-		(interactive-loop scope)))))
+           void)
+          (else (print (eval e scope))
+                (interactive-loop scope)))))
 
 (define (print x)
   (cond ((not (eq? x void))
-	 (write x)
-	 (newline))))
+         (write x)
+         (newline))))
 
 
 ;; The set of users -- initially just the administrator.
@@ -311,10 +311,10 @@
   ;; N.B. This should also create the user's directory, but there's
   ;; no R4RS procedure to create a directory.
   (make-user name
-	     (string-append "users" 
-			    file-separator
-			    (symbol->string name)
-			    file-separator)))
+             (string-append "users" 
+                            file-separator
+                            (symbol->string name)
+                            file-separator)))
 
 (define admin-scope (make-ordinary-user 'admin))
 
@@ -329,5 +329,5 @@
 (lambda (username . opt-program)
   (let ((scope (cdr (assq username (get users)))))
     (if (null? opt-program)
-	(interactive-loop scope)
-	(eval (car opt-program) scope))))
+        (interactive-loop scope)
+        (eval (car opt-program) scope))))

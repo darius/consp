@@ -21,14 +21,14 @@
 
   (define (poll! voter)
     (voter (map (lambda (r b) 
-		  (cons r (make-one-shot (lambda () (inc! b 1)))))
-		restaurants
-		ballot-box)))
+                  (cons r (make-one-shot (lambda () (inc! b 1)))))
+                restaurants
+                ballot-box)))
 
   (define (tally-votes)
     (map (lambda (r b) (list r (get b)))
-	 restaurants
-	 ballot-box))
+         restaurants
+         ballot-box))
 
   (for-each poll! lunch-crowd)
   tally-votes)

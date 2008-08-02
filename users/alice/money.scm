@@ -18,10 +18,10 @@
 
 (define (purse-transfer! amount from to) 
   (let ((from-box (unseal from)) 
-	(to-box   (unseal to))) 
+        (to-box   (unseal to))) 
     (cond ((< amount 0) (panic "Negative amount"))
-	  ((< (get from-box) amount) (panic "Insufficient funds"))
-	  (else (put! from-box (- (get from-box) amount)) 
-		(put! to-box   (+ (get to-box) amount))) )))
+          ((< (get from-box) amount) (panic "Insufficient funds"))
+          (else (put! from-box (- (get from-box) amount)) 
+                (put! to-box   (+ (get to-box) amount))) )))
 
 (export purse? make-money make-purse purse-balance purse-transfer!)

@@ -12,8 +12,8 @@
     (cadr (assoc x table)))
 
   (define prediction (vector (box 0) (box 1) (box 2)
-			     (box 0) (box 1) (box 2)
-			     (box 0) (box 1) (box 2)))
+                             (box 0) (box 1) (box 2)
+                             (box 0) (box 1) (box 2)))
 
   (define (predict mine his)
     (vector-ref prediction (+ (* 3 his) mine)))
@@ -32,11 +32,11 @@
   (define (answer his1)
     (let ((m2 (get mine2)) (h2 (get his2)) (m1 (get mine1)))
       (let ((result (move m2 h2 m1 his1)))
-	(put! mine2 m1)
-	(put! his2  his1)
-	(put! mine1 result)
-	result)))
+        (put! mine2 m1)
+        (put! his2  his1)
+        (put! mine1 result)
+        result)))
 
   (lambda (his-last-move)
     (convert printable 
-	     (answer (convert unprintable (or his-last-move 'paper))))))
+             (answer (convert unprintable (or his-last-move 'paper))))))

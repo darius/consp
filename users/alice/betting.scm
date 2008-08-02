@@ -15,7 +15,7 @@
   (define (run-and-report)
     (let ((results (play player1 player2 rounds)))
       (for-each (lambda (observe) (apply observe results))
-		(get observers))
+                (get observers))
       results))
   (define run (make-one-shot run-and-report))
   (export add-observer! run))
@@ -23,6 +23,6 @@
 (define (make-bet-observer amount purse1 purse2)
   (lambda (wins1 wins2)
     (cond ((< wins1 wins2) (purse-transfer! amount purse1 purse2))
-	  ((< wins2 wins1) (purse-transfer! amount purse2 purse1)))))
+          ((< wins2 wins1) (purse-transfer! amount purse2 purse1)))))
 
 (export make-match make-bet-observer)

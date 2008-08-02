@@ -10,17 +10,17 @@ immutable (but what about interaction-level ones?).
 
 (define (elaborate e scope)
   (cond ((symbol? e)
-	 (let ((binding (scope-lookup e scope)))
-	   (assert (value-binding? binding))
-	   (values binding (get-scope-map scope))))
-	((not (pair? e))
-	 (values `',e empty-scope-map))
-	(else (let ((tag (scope-lookup (car e) scope)))
-		; FIXME: oops, we need to "static-eval" the car instead
-		; to yield a syntax object
-		(cond ((syntax-binding? tag)
-		       (elaborate-syntax tag (cdr e) scope))
-		      ...)))))
+         (let ((binding (scope-lookup e scope)))
+           (assert (value-binding? binding))
+           (values binding (get-scope-map scope))))
+        ((not (pair? e))
+         (values `',e empty-scope-map))
+        (else (let ((tag (scope-lookup (car e) scope)))
+                ; FIXME: oops, we need to "static-eval" the car instead
+                ; to yield a syntax object
+                (cond ((syntax-binding? tag)
+                       (elaborate-syntax tag (cdr e) scope))
+                      ...)))))
 
 (define (run e scope-map env)
   (if (variable-ref? e)
@@ -35,9 +35,9 @@ immutable (but what about interaction-level ones?).
 
 (define (let-syntax args scope)
   (let ((transformer (make-transformer (car args) scope))
-	(begin-syntax (scope-lookup 'begin safe-scope)))
+        (begin-syntax (scope-lookup 'begin safe-scope)))
     (elaborate `(',begin-syntax ,@(cdr args)) 
-	       (extend scope transformer))))
+               (extend scope transformer))))
 
 Hm, so we'd only use the scope-map for debugging, plus auditing
 if/when we have that.  For auditing, we could store the needed map

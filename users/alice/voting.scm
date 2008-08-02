@@ -13,14 +13,14 @@
 
   (define (poll! voter)
     (voter (map (lambda (c b) 
-		  (cons c (make-one-shot (lambda () (inc! b 1)))))
-		choices
-		ballot-box)))
+                  (cons c (make-one-shot (lambda () (inc! b 1)))))
+                choices
+                ballot-box)))
 
   (define (tally-votes)
     (map (lambda (c b) (list c (get b)))
-	 choices
-	 ballot-box))
+         choices
+         ballot-box))
 
   (for-each poll! voters)
   tally-votes)

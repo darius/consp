@@ -10,8 +10,8 @@
   (cadr (assoc x table)))
 
 (define prediction (vector (box 0) (box 1) (box 2)
-			   (box 0) (box 1) (box 2)
-			   (box 0) (box 1) (box 2)))
+                           (box 0) (box 1) (box 2)
+                           (box 0) (box 1) (box 2)))
 
 (define (predict mine his)
   (vector-ref prediction (+ (* 3 his) mine)))
@@ -37,4 +37,4 @@
 
 (lambda (his-last-move)
   (convert printable 
-	   (answer (convert unprintable (or his-last-move 'paper)))))
+           (answer (convert unprintable (or his-last-move 'paper)))))

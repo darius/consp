@@ -51,13 +51,13 @@ expose their powers as delimited capabilities.  See the E language
 
 CONTENTS
 
-  loadme.scm			The starting point
-  Manual.text   		The documentation
-  tests.scm			System self-tests and examples
-  users/			Private directories for each user
-  users/admin/consp.scm 	The Consp interpreter
-  users/admin/boot.scm		Consp code to boot up the system
-  Notes.text			Includes a list of fixed security bugs
+  loadme.scm                    The starting point
+  Manual.text                   The documentation
+  tests.scm                     System self-tests and examples
+  users/                        Private directories for each user
+  users/admin/consp.scm         The Consp interpreter
+  users/admin/boot.scm          Consp code to boot up the system
+  Notes.text                    Includes a list of fixed security bugs
 
 
 LICENSE & CONTACT

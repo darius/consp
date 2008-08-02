@@ -17,15 +17,15 @@
   (call-with-input-file filename
     (lambda (port)
       (let reading ()
-	(let ((x (read port)))
-	  (if (eof-object? x) 
-	      '()
-	      (cons x (reading))))))))
+        (let ((x (read port)))
+          (if (eof-object? x) 
+              '()
+              (cons x (reading))))))))
 
 (define (all ok? ls)
   (or (null? ls)
       (and (ok? (car ls))
-	   (all ok? (cdr ls)))))
+           (all ok? (cdr ls)))))
 
 (define gentemp
   (let ((counter (box 0)))
@@ -49,51 +49,51 @@
 
 (define (delq x xs)
   (cond ((null? xs) '())
-	((eq? x (car xs)) (cdr xs))
-	(else (cons (car xs) (delq x (cdr xs))))))
+        ((eq? x (car xs)) (cdr xs))
+        (else (cons (car xs) (delq x (cdr xs))))))
 
 
 ;; Reduce expression E to kernel-Scheme form.
 
 (define (elaborate e)
   (cond ((symbol? e) e)
-	((not (pair? e)) (list 'quote e))
-	(else (let ((oper (car e))
-		    (rands (cdr e)))
-		(insist e (list? rands))
-		(case oper
-		  ((quote) 
-		   (insist e (= 1 (length rands)))
-		   e)
-		  ((lambda) 
-		   (insist e (valid-formals? (car rands)))
-		   `(lambda ,(car rands)
-		      ,(elaborate `(begin ,@(cdr rands)))))
-		  ((if) 
-		   (insist e (<= 2 (length rands) 3))
-		   `(if ,(elaborate (car rands))
-			,(elaborate (cadr rands))
-			,(elaborate (if.alternative rands))))
-		  ((define)
-		   (insist e (or (and (symbol? (car rands))
-				      (= 2 (length rands)))
-				 (and (valid-formals? (car rands))
-				      (<= 2 (length rands)))))
-		   `(define ,(define.name rands) 
-		      ,(elaborate (define.value rands))))
-		  ((begin)
-		   (if (null? rands)
-		       `',void
-		       (let loop ((e (car rands)) (rands (cdr rands)))
-			 (if (null? rands)
-			     (elaborate e)
-			     `(begin ,(elaborate e)
-				     ,(loop (car rands) (cdr rands)))))))
-		  (else
-		   (cond ((get-expander oper)
-			  => (lambda (expander)
-			       (elaborate (expander e rands))))
-			 (else (map elaborate e)))))))))
+        ((not (pair? e)) (list 'quote e))
+        (else (let ((oper (car e))
+                    (rands (cdr e)))
+                (insist e (list? rands))
+                (case oper
+                  ((quote) 
+                   (insist e (= 1 (length rands)))
+                   e)
+                  ((lambda) 
+                   (insist e (valid-formals? (car rands)))
+                   `(lambda ,(car rands)
+                      ,(elaborate `(begin ,@(cdr rands)))))
+                  ((if) 
+                   (insist e (<= 2 (length rands) 3))
+                   `(if ,(elaborate (car rands))
+                        ,(elaborate (cadr rands))
+                        ,(elaborate (if.alternative rands))))
+                  ((define)
+                   (insist e (or (and (symbol? (car rands))
+                                      (= 2 (length rands)))
+                                 (and (valid-formals? (car rands))
+                                      (<= 2 (length rands)))))
+                   `(define ,(define.name rands) 
+                      ,(elaborate (define.value rands))))
+                  ((begin)
+                   (if (null? rands)
+                       `',void
+                       (let loop ((e (car rands)) (rands (cdr rands)))
+                         (if (null? rands)
+                             (elaborate e)
+                             `(begin ,(elaborate e)
+                                     ,(loop (car rands) (cdr rands)))))))
+                  (else
+                   (cond ((get-expander oper)
+                          => (lambda (expander)
+                               (elaborate (expander e rands))))
+                         (else (map elaborate e)))))))))
 
 (define (if.alternative rands)
   (if (null? (cddr rands))
@@ -115,13 +115,13 @@
   (let loop ((formals formals) (vars '()))
     (define (valid-var? formal)
       (and (symbol? formal)
-	   (not (memq formal vars))))
+           (not (memq formal vars))))
     (or (null? formals)
-	(valid-var? formals)
-	(and (pair? formals)
-	     (valid-var? (car formals))
-	     (loop (cdr formals)
-		   (cons (car formals) vars))))))
+        (valid-var? formals)
+        (and (pair? formals)
+             (valid-var? (car formals))
+             (loop (cdr formals)
+                   (cons (car formals) vars))))))
 
 
 ;; Macros
@@ -130,7 +130,7 @@
 
 (define (get-expander tag)
   (cond ((assq tag (get expanders)) => cdr)
-	(else #f)))
+        (else #f)))
 
 (define (define-expander tag expander)
   (put! expanders (acons tag expander (get expanders))))
@@ -151,42 +151,42 @@
   (lambda (expr rands)
     (insist expr (pair? rands))
     (if (symbol? (car rands)) ; named-let form
-	(begin
-	 (insist expr (valid-let? (cdr rands)))
-	 (let ((proc (car rands)) 
-	       (decls (cadr rands)) 
-	       (body (cddr rands)))
-	   `((letrec ((,proc (lambda ,(map car decls) ,@body)))
-	       ,proc)
-	     ,@(map cadr decls))))
-	(begin
-	 (insist expr (valid-let? rands))
-	 (let ((names (map car (car rands)))
-	       (exps (map cadr (car rands)))
-	       (body (cdr rands)))
-	   (if (null? names)
-	       `(begin ,@body)
-	       `((lambda ,names ,@body) ,@exps)))))))
+        (begin
+         (insist expr (valid-let? (cdr rands)))
+         (let ((proc (car rands)) 
+               (decls (cadr rands)) 
+               (body (cddr rands)))
+           `((letrec ((,proc (lambda ,(map car decls) ,@body)))
+               ,proc)
+             ,@(map cadr decls))))
+        (begin
+         (insist expr (valid-let? rands))
+         (let ((names (map car (car rands)))
+               (exps (map cadr (car rands)))
+               (body (cdr rands)))
+           (if (null? names)
+               `(begin ,@body)
+               `((lambda ,names ,@body) ,@exps)))))))
 
 (define-expander 'letrec
   (lambda (expr rands)
     (insist expr (valid-let? rands))
     (let ((vars (map car (car rands)))
-	  (exps (map cadr (car rands)))
-	  (body (cdr rands)))
+          (exps (map cadr (car rands)))
+          (body (cdr rands)))
       `(let ()
-	 ,@(map (lambda (var exp) `(define ,var ,exp)) vars exps)
-	 ,@body))))
+         ,@(map (lambda (var exp) `(define ,var ,exp)) vars exps)
+         ,@body))))
 
 (define-expander 'let*
   (lambda (expr rands)
     (insist expr (pair? rands))
     (let ((decls (car rands))
-	  (body (cdr rands)))
+          (body (cdr rands)))
       (if (null? decls)
-	  `(let () ,@body)
-	  `(let (,(car decls))
-	     (let* ,(cdr decls) ,@body))))))
+          `(let () ,@body)
+          `(let (,(car decls))
+             (let* ,(cdr decls) ,@body))))))
 
 (define-expander 'and
   (lambda (expr rands)
@@ -201,8 +201,8 @@
       ((0) #f)
       ((1) (car rands))
       (else (let ((head (gentemp)))
-	      `(let ((,head ,(car rands)))
-		 (if ,head ,head (or ,@(cdr rands)))))))))
+              `(let ((,head ,(car rands)))
+                 (if ,head ,head (or ,@(cdr rands)))))))))
 
 (define-expander 'cond
   (lambda (expr rands)
@@ -212,76 +212,76 @@
        (syntax-error "Invalid cond clause" (car rands)))
       ((eq? (caar rands) 'else)
        (if (null? (cdr rands))
-	   `(begin ,@(cdar rands))
-	   (syntax-error "Else-clause is not last" rands)))
+           `(begin ,@(cdar rands))
+           (syntax-error "Else-clause is not last" rands)))
       ((null? (cdar rands))
        `(or ,(caar rands) (cond ,@(cdr rands))))
       ((and (pair? (cdar rands)) (eq? (cadar rands) '=>))
        (if (not (and (list? (car rands))
-		     (= (length (car rands)) 3)))
-	   (syntax-error "Bad cond clause syntax" rands))
+                     (= (length (car rands)) 3)))
+           (syntax-error "Bad cond clause syntax" rands))
        (let ((test-var (gentemp)))
-	 `(let ((,test-var ,(caar rands)))
-	    (if ,test-var
-		(,(caddar rands) ,test-var)
-		(cond ,@(cdr rands))))))
+         `(let ((,test-var ,(caar rands)))
+            (if ,test-var
+                (,(caddar rands) ,test-var)
+                (cond ,@(cdr rands))))))
       (else `(if ,(caar rands) 
-	         (begin ,@(cdar rands))
-	         (cond ,@(cdr rands)))))))
+                 (begin ,@(cdar rands))
+                 (cond ,@(cdr rands)))))))
 
 (define-expander 'case
   (lambda (expr rands)
     (insist expr (pair? rands))
     (let ((test (car rands))
-	  (sym (gentemp)))
+          (sym (gentemp)))
       `(let ((,sym ,test))
-	 (cond 
-	   ,@(map 
-	      (lambda (clause)
-		(cond
-		  ((eq? (car clause) 'else)
-		   clause)
-		  ((null? (cdar clause))
-		   `((,equal? ,sym ',(caar clause))
-		     ,@(cdr clause)))
-		  (else
-		   `((,member ,sym ',(car clause))
-		     ,@(cdr clause)))))
-	      (cdr rands)))))))
+         (cond 
+           ,@(map 
+              (lambda (clause)
+                (cond
+                  ((eq? (car clause) 'else)
+                   clause)
+                  ((null? (cdar clause))
+                   `((,equal? ,sym ',(caar clause))
+                     ,@(cdr clause)))
+                  (else
+                   `((,member ,sym ',(car clause))
+                     ,@(cdr clause)))))
+              (cdr rands)))))))
 
 (define-expander 'do
   (lambda (expr rands)
     (insist expr (and (<= 2 (length rands))
-		 (let valid-clauses? ((clauses (car rands)))
-		   (if (null? clauses)
-		       #t
-		       (let ((clause (car clauses)))
-			 (and (pair? clause)
-			      (symbol? (car clause))
-			      (pair? (cdr clause))
-			      (if (null? (cddr clause))
-				  #t
-				  (null? (cdddr clause)))
-			      (valid-clauses? (cdr clauses))))))
-		 (pair? (cadr rands))))
+                 (let valid-clauses? ((clauses (car rands)))
+                   (if (null? clauses)
+                       #t
+                       (let ((clause (car clauses)))
+                         (and (pair? clause)
+                              (symbol? (car clause))
+                              (pair? (cdr clause))
+                              (if (null? (cddr clause))
+                                  #t
+                                  (null? (cdddr clause)))
+                              (valid-clauses? (cdr clauses))))))
+                 (pair? (cadr rands))))
     (let ((loop (gentemp))
-	  (variables (map car (car rands)))
-	  (inits (map cadr (car rands)))
-	  (steps (map (lambda (clause)
-			(if (null? (cddr clause))
-			    (car clause) ;default step leaves var unchanged.
-			    (caddr clause)))
-		      (car rands)))
-	  (test (caadr rands))
-	  (result (cdadr rands))
-	  (body (cddr rands)))
+          (variables (map car (car rands)))
+          (inits (map cadr (car rands)))
+          (steps (map (lambda (clause)
+                        (if (null? (cddr clause))
+                            (car clause) ;default step leaves var unchanged.
+                            (caddr clause)))
+                      (car rands)))
+          (test (caadr rands))
+          (result (cdadr rands))
+          (body (cddr rands)))
       `(letrec ((,loop 
-		 (lambda ,variables
-		   (if ,test
-		       (begin ,@result)
-		       (begin ,@body
-			      (,loop ,@steps))))))
-	 (,loop ,@inits)))))
+                 (lambda ,variables
+                   (if ,test
+                       (begin ,@result)
+                       (begin ,@body
+                              (,loop ,@steps))))))
+         (,loop ,@inits)))))
 
 (define-expander 'quasiquote
   (lambda (expr rands)
@@ -297,11 +297,11 @@
   (and (<= 2 (length rands))
        (list? (car rands))
        (all (lambda (decl) 
-	      (and (pair? decl)
-		   (pair? (cdr decl))
-		   (null? (cddr decl))
-		   (symbol? (car decl))))
-	    (car rands))
+              (and (pair? decl)
+                   (pair? (cdr decl))
+                   (null? (cddr decl))
+                   (symbol? (car decl))))
+            (car rands))
        (valid-formals? (map car (car rands)))))
 
 
@@ -321,40 +321,40 @@
    ((eq? (car exp) 'unquote)
     (insist (= (length exp) 2))
     (if (= nesting 0)
-	(cadr exp)
-	(combine-skeletons ''unquote 
-			   (expand-quasiquote (cdr exp) (- nesting 1))
-			   exp)))
+        (cadr exp)
+        (combine-skeletons ''unquote 
+                           (expand-quasiquote (cdr exp) (- nesting 1))
+                           exp)))
    ((eq? (car exp) 'quasiquote)
     (insist (= (length exp) 2))
     (combine-skeletons ''quasiquote 
-		       (expand-quasiquote (cdr exp) (+ nesting 1))
-		       exp))
+                       (expand-quasiquote (cdr exp) (+ nesting 1))
+                       exp))
    ((and (pair? (car exp))
-	 (eq? (caar exp) 'unquote-splicing))
+         (eq? (caar exp) 'unquote-splicing))
     (insist (= (length (car exp)) 2))
     (if (= nesting 0)
-	(if (null? (cdr exp))
-	    (cadar exp)
-	    `(,append ,(cadar exp)
-		      ,(expand-quasiquote (cdr exp) nesting)))
-	(combine-skeletons (expand-quasiquote (car exp) (- nesting 1))
-			   (expand-quasiquote (cdr exp) nesting)
-			   exp)))
+        (if (null? (cdr exp))
+            (cadar exp)
+            `(,append ,(cadar exp)
+                      ,(expand-quasiquote (cdr exp) nesting)))
+        (combine-skeletons (expand-quasiquote (car exp) (- nesting 1))
+                           (expand-quasiquote (cdr exp) nesting)
+                           exp)))
    (else (combine-skeletons (expand-quasiquote (car exp) nesting)
-			    (expand-quasiquote (cdr exp) nesting)
-			    exp))))
+                            (expand-quasiquote (cdr exp) nesting)
+                            exp))))
 
 (define (combine-skeletons left right exp)
   (define (my-eval constant)
     (if (pair? constant)       ;; must be quoted constant
-	(cadr constant)
-	constant))
+        (cadr constant)
+        constant))
   (if (and (constant? left) (constant? right)) 
       (if (and (eqv? (my-eval left) (car exp))
-	       (eqv? (my-eval right) (cdr exp)))
-	  (list 'quote exp)
-	  (list 'quote (cons (my-eval left) (my-eval right))))
+               (eqv? (my-eval right) (cdr exp)))
+          (list 'quote exp)
+          (list 'quote (cons (my-eval left) (my-eval right))))
       `(,cons ,left ,right)))
 
 (define (constant? exp)
@@ -375,22 +375,22 @@
 (define-expander 'import
   (lambda (expr rands)
     (insist expr (and (<= 1 (length rands))
-		      (valid-import/export? (cdr rands))))
+                      (valid-import/export? (cdr rands))))
     (let ((subject (gentemp)))
       (define (expand-import clause)
-	`(define ,(fooport-value clause)
-	   (,cdr (,assv ',(fooport-key clause) ,subject))))
+        `(define ,(fooport-value clause)
+           (,cdr (,assv ',(fooport-key clause) ,subject))))
       `(begin
-	(define ,subject ,(car rands))
-	,@(map expand-import (cdr rands))))))
+        (define ,subject ,(car rands))
+        ,@(map expand-import (cdr rands))))))
 
 (define (valid-import/export? clauses)
   (define (valid-clause? clause)
     (or (symbol? clause)
-	(and (list? clause) 
-	     (= (length clause) 2)
-	     (symbol? (car clause))
-	     (symbol? (cadr clause)))))
+        (and (list? clause) 
+             (= (length clause) 2)
+             (symbol? (car clause))
+             (symbol? (cadr clause)))))
   (all valid-clause? clauses))
 
 (define (fooport-key clause)
@@ -427,25 +427,25 @@
 
 (define (lookup r var)
   (cond ((not r) (panic "Unbound variable" var))
-	((assq var (scope.frame r)) => cdr)
-	(else (lookup (scope.enclosing r) var))))
+        ((assq var (scope.frame r)) => cdr)
+        (else (lookup (scope.enclosing r) var))))
 
 (define (meta-define! r var val)
   (scope.set-frame! 
    r
    (acons var val
-	  (cond ((assq var (scope.frame r))
-		 => (lambda (binding) 
-		      (if (not (scope.mutable? r))
-			  (panic "DEFINE misused to assign" var))
-		      (delq binding (scope.frame r))))
-		(else (scope.frame r))))))
+          (cond ((assq var (scope.frame r))
+                 => (lambda (binding) 
+                      (if (not (scope.mutable? r))
+                          (panic "DEFINE misused to assign" var))
+                      (delq binding (scope.frame r))))
+                (else (scope.frame r))))))
 
 (define (meta-scope-variables r)
   (if (not r)
       '()
       (append (map car (scope.frame r))
-	      (meta-scope-variables (scope.enclosing r)))))
+              (meta-scope-variables (scope.enclosing r)))))
 
 
 ;; The interpreter
@@ -456,41 +456,41 @@
 (define (really-evaluate e r)
   (let ev ((e e))
     (cond ((symbol? e) (lookup r e))
-	  (else (let ((oper (car e))
-		      (rands (cdr e)))
-		  (case oper
-		    ((quote)
-		     (car rands))
-		    ((lambda) 
-		     (if (symbol? (list-end (car rands)))
-			 (let ((params (listify (car rands))))
-			   (lambda args
-			     (really-evaluate
-			      (cadr rands)
-			      (extend r params
-				      (varargs-vals params args)))))
-			 (lambda args
-			   (really-evaluate (cadr rands)
-					    (extend r (car rands) args)))))
-		    ((define)
-		     (let ((value (ev (cadr rands))))
-		       (meta-define! r (car rands) value)
-		       value))
-		    ((if) 
-		     (if (ev (car rands))
-			 (ev (cadr rands))
-			 (ev (caddr rands))))
-		    ((begin)
-		     (ev (car rands))
-		     (ev (cadr rands)))
-		    (else
-		     (apply (ev oper) (map ev rands)))))))))
+          (else (let ((oper (car e))
+                      (rands (cdr e)))
+                  (case oper
+                    ((quote)
+                     (car rands))
+                    ((lambda) 
+                     (if (symbol? (list-end (car rands)))
+                         (let ((params (listify (car rands))))
+                           (lambda args
+                             (really-evaluate
+                              (cadr rands)
+                              (extend r params
+                                      (varargs-vals params args)))))
+                         (lambda args
+                           (really-evaluate (cadr rands)
+                                            (extend r (car rands) args)))))
+                    ((define)
+                     (let ((value (ev (cadr rands))))
+                       (meta-define! r (car rands) value)
+                       value))
+                    ((if) 
+                     (if (ev (car rands))
+                         (ev (cadr rands))
+                         (ev (caddr rands))))
+                    ((begin)
+                     (ev (car rands))
+                     (ev (cadr rands)))
+                    (else
+                     (apply (ev oper) (map ev rands)))))))))
 
 (define (varargs-vals vars vals)
   (if (null? (cdr vars))
       (list vals)
       (cons (car vals)
-	    (varargs-vals (cdr vars) (cdr vals)))))
+            (varargs-vals (cdr vars) (cdr vals)))))
 
 
 ;; R4RS primitive procedures
@@ -554,14 +554,14 @@
 (meta-define! meta-safe-scope 'read-char         (require-1-arg read-char))
 (meta-define! meta-safe-scope 'read              (require-1-arg read))
 (meta-define! meta-safe-scope 'write-char        (require-2-args 
-						  do-write-char))
+                                                  do-write-char))
 (meta-define! meta-safe-scope 'write             (require-2-args do-write))
 (meta-define! meta-safe-scope 'display           (require-2-args do-display))
 (meta-define! meta-safe-scope 'newline           (require-1-arg do-newline))
 (meta-define! meta-safe-scope 'close-input-port  (require-1-arg
-						  do-close-input-port))
+                                                  do-close-input-port))
 (meta-define! meta-safe-scope 'close-output-port (require-1-arg
-						  do-close-output-port))
+                                                  do-close-output-port))
 
 
 (define unsafe-primitives
