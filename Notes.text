@@ -1,0 +1,95 @@
+Scopes and macros:
+
+You get hygienic macros by expanding directly into the constant value
+bound, instead of the name.  This is possible because bindings are
+immutable (but what about interaction-level ones?).
+
+(define (eval e scope env)   ; where scope is now a static environment
+  (define-values (kernel-e scope-map) (elaborate e scope)
+    (run kernel-e scope-map env)))
+
+(define (elaborate e scope)
+  (cond ((symbol? e)
+	 (let ((binding (scope-lookup e scope)))
+	   (assert (value-binding? binding))
+	   (values binding (get-scope-map scope))))
+	((not (pair? e))
+	 (values `',e empty-scope-map))
+	(else (let ((tag (scope-lookup (car e) scope)))
+		; FIXME: oops, we need to "static-eval" the car instead
+		; to yield a syntax object
+		(cond ((syntax-binding? tag)
+		       (elaborate-syntax tag (cdr e) scope))
+		      ...)))))
+
+(define (run e scope-map env)
+  (if (variable-ref? e)
+      (lookup e env)
+      ...))
+
+(define variable-ref? symbol?)   ; For now; but lexical addresses, etc.
+(define value-binding? symbol?)
+
+(define syntax-binding? procedure?)
+(define (elaborate-syntax sb args scope) (sb args scope))
+
+(define (let-syntax args scope)
+  (let ((transformer (make-transformer (car args) scope))
+	(begin-syntax (scope-lookup 'begin safe-scope)))
+    (elaborate `(',begin-syntax ,@(cdr args)) 
+	       (extend scope transformer))))
+
+Hm, so we'd only use the scope-map for debugging, plus auditing
+if/when we have that.  For auditing, we could store the needed map
+away inside the elaborated auditor-using expression, although then we
+need to be careful the interpreter only sees elaborated expressions
+that have been constructed 'safely' (e.g. by known code like EVAL).
+For debugging, we can store it away in compiled code objects.
+
+How do we ensure macroexpansion is safe?  Look up that MarkM e-lang
+posting.
+
+
+Debugging:
+
+Use a meta-interpreter that wraps procedures and records in its own
+seal.
+http://www.eros-os.org/pipermail/e-lang/2004-January/009447.html
+http://www.cs.tut.fi/staff/pk/scheme/psd/article/article.html
+
+
+Recent security bugs, in reverse chronological order:
+
+Writing a record depicted the underlying vector object.
+
+Ordinary users still had some unnecessary vulnerabilities to the
+admin: the admin could access their mailboxes and their files, and
+publish stuff on their behalf.  I think a better approach, instead of
+making the admin scope essentially just the scope boot.scm runs in,
+would be to give the admin a regular user account and then import just
+a few extra capabilities into it.  This leaves the possibility of
+leaving out necessary functionality, though.  That is, I would like
+this to model a self-contained OS, like Smalltalk, that can evolve
+through arbitrary changes without having to step outside the system.
+So at a minimum we should have the boot code and the interpreter code
+accessible as files to the admin user.  OK, done.
+
+The administrator could log themself in as any other user -- not
+strictly a security bug, depending on your goals, but certainly
+unnecessary.  Fixed by defining the user table in a child of the admin
+scope instead of the admin scope itself.
+
+unsafe-scope was accessible to ordinary users.  Fixed by shadowing it
+to their base-scope instead.
+
+safe-scope was extensible through DEFINE!  Simplest fix: give out a
+sprouted scope instead of the scope itself.  (Though that's not fully
+a fix, because extensions to that scope aren't visible in scopes
+enclosed by the original.  But that's not an ability we especially
+need.)
+
+Broken definition of VECTOR?.  It originally made sure the argument
+was not a box, but later we added records.
+
+USE caching broke confinement.  I knew about this but was putting off
+looking into it until I saw how E handled the issue.

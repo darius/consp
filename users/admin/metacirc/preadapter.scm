@@ -1,0 +1,12 @@
+(define do-vector?       vector?)
+(define do-vector-length vector-length)
+(define do-vector->list  vector->list)
+(define do-vector-ref    vector-ref)
+
+(define do-for-each          for-each)
+(define do-write-char        write-char)
+(define do-write             write)
+(define do-display           display)
+(define do-newline           newline)
+(define do-close-input-port  close-input-port)
+(define do-close-output-port close-output-port)

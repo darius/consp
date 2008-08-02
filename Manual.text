@@ -1,0 +1,303 @@
+Consp is R4RS Scheme minus a few features and plus a few others.
+Notably, we've removed continuations and most forms of mutation, and
+added encapsulated record types and first-class environments.  Then,
+inside the language, we set up a multiuser environment with some
+example apps.
+
+
+---------------------------------------------------------------------
+Part 1: Taming standard Scheme
+
+Continuations
+
+CALL-WITH-CURRENT-CONTINUATION is not defined, because I don't know
+how to do security reasoning with a pervasive possibility of
+continuations getting captured.  Hewitt's Actors also had this issue,
+so I ought to have a look at how they dealt with it -- perhaps
+implicit continuations were one-shots or something.
+
+For now, a conservative extension could be to provide first-class
+continuations with dynamic extent, like E's ejectors.  We'd need an
+UNWIND-PROTECT form to go along with that.
+
+
+Mutation
+
+Strings, lists, and vectors are immutable, and so are variable
+bindings in the normal case; use boxes instead when you want to do
+assignments (see below).  (It would be natural to support mutable
+vectors in addition to immutable ones, but I didn't bother because
+that's just an efficiency improvement over a vector of boxes.)
+
+This rather draconian change to the language isn't strictly necessary
+(Scheme48 just extends standard Scheme with some immutability
+features).  But running existing Scheme code isn't a priority for me
+here, while jumping right into the capability paradigm is.
+
+A variable in an interaction scope can be assigned to by redefining
+it: 
+
+  > (define x 42)
+  > (define x (+ x 1))
+
+This is for convenience in interactive development, and normally would
+raise an error in other contexts (but see SPROUT-MUTABLE below).
+
+
+Unspecified values
+
+Some standard Scheme procedures return unspecified values; here they
+are defined to return a distinguished 'void' value.  This is to plug
+possible leaks of authority via the underlying Scheme's return value.
+
+
+Other standard Scheme procedures
+
+Only R4RS's 'required' procedures are included; others can be added in
+the same way (see src/r4rs-bindings.scm), but I didn't want to depend
+on them existing in the underlying Scheme.
+
+
+---------------------------------------------------------------------
+Part 2: New built-in features
+
+Boxes
+
+Instead of mutable variables, we have boxes: mutable containers of a
+value.  They are constructed with BOX, tested with BOX?, and accessed
+with GET and PUT!.  For example:
+
+  (define counter (box 0))
+  (define (count) (get counter))
+  (define (tally!) (put! counter (+ 1 (get counter))))
+
+
+Records
+
+Boxes are just a particular type of record, predefined for
+convenience.  
+
+(RECORD? x) returns #t if X is a record, #f otherwise.
+
+(MAKE-RECORD-TYPE arity mutable?) creates a new, encapsulated record
+type and returns a list of procedures implementing it: (make-instance
+instance? getter1... setter1...).  The setters are optional, and
+returned only when MUTABLE? is true.  Of these procedures:
+
+  (MAKE-INSTANCE element1 ...) makes a new instance of the record
+  type.  The number of elements equals ARITY above.  The result is not
+  EQ? to any other instance.
+
+  (INSTANCE? x) returns #t if X is an instance of this type, else #f.
+
+  (GETTER1 instance) the first element of the record instance
+  [i.e., ELEMENT1 above].  And so on for the other ARITY getters.
+
+  (SETTER1 instance value) changes the instance so its first element 
+  is VALUE, and returns void.  
+
+A record type is disjoint from all other Scheme types; that is,
+(boolean? instance) ... (vector? instance) all return #f.  There is no
+other way to affect or inspect a record than through the above
+procedures -- we rely on this for security.
+
+I should probably supply some convenient syntax for record type
+definitions -- a list destructuring form might be enough.
+
+
+Export/import
+
+For convenience in transferring collections of bindings, there are two
+new special forms, EXPORT and IMPORT,
+
+(EXPORT x y z), where X, Y, Z are symbols, is equivalent to 
+
+  `((x . ,x) (y . ,y) (z . ,z)).
+
+(IMPORT foo x y z), where X, Y, Z are symbols, is the inverse; it's
+equivalent to
+
+  (begin
+    (define tmp foo)   ; Except that TMP is a fresh name
+    (define x (cdr (assoc 'x tmp)))
+    (define y (cdr (assoc 'y tmp)))
+    (define z (cdr (assoc 'z tmp)))
+
+(Thus (import (export x) x) effectively does nothing.)
+
+IMPORT and EXPORT can also do renamings -- e.g., (export x (blah y))
+is equivalent to `((x . ,x) (blah . ,y)).
+
+If our scope objects were immutable, it would've made sense for import
+and export to work on scope objects instead of a-lists.
+
+
+Scopes and evaluation
+
+(EVAL expression scope) evaluates the expression in the scope (our
+name for environment).  The expression can be any object, but if it's
+not syntactically valid an error is raised.  (It is valid to include
+arbitrary objects as literals.)
+
+There are two predefined scopes:
+
+SAFE-SCOPE has bindings for most Scheme procedures, including only
+those that are 'safe' in this sense: they can only do pure computation
+and not affect anything outside them (other than raise an error that
+terminates the whole interpreter) or receive information from outside,
+unless they are passed a reference to the relevant capability.  For
+example, OPEN-INPUT-FILE is not safe, because it can create a new port
+that can then be written to.  The no-argument READ procedure is not
+safe, because it reads from the current input port.  On the other
+hand, the one-argument READ, which is given a port, is considered safe
+because the port must be supplied explicitly.  Thus the safe scope's
+I/O procedures are all restricted to take a port argument.
+
+A procedure that returned the current time would be another example of
+unsafeness, even though it doesn't side-effect anything, because it
+receives ambient information.  A safe variant would take a
+clock-object argument.
+
+The safe scope doesn't have a binding for SAFE-SCOPE itself, because
+scopes can be extended (see DEFINE! below), which is a power that
+could be used for communication.  (Maybe "confined scope" would be a
+better name than "safe scope"...)
+
+UNSAFE-SCOPE provides the whole language as defined here, including
+unrestricted versions of the I/O primitives.
+
+There are several procedures that work on scopes:
+
+(SCOPE-VARIABLES scope) returns a list of the variables bound in a
+scope.  Variables that are shadowed appear multiple times in the list.
+
+(DEFINE! scope variable value) extends the outermost frame of SCOPE to
+bind VARIABLE to VALUE.  If the variable was already bound in that
+frame, and the scope is not mutable, an error is raised.
+
+(SPROUT scope) makes a new scope enclosed by SCOPE, with a new frame
+but no extra bindings yet.  It is not a mutable scope (i.e. once a
+variable is defined in the new frame, it may not be changed in that
+frame).
+
+(SPROUT-MUTABLE scope) is like SPROUT but makes a mutable scope.
+Mutable scopes are meant mainly for user interaction.
+
+
+Behavior of DEFINE
+
+Standard Scheme only defines the nested DEFINE form in certain
+patterns where it's equivalent to LETREC.  Here, it's extended to be
+just another type of expression.  Its effect is to evaluate the value
+form, then DEFINE! a new binding in the current scope for the
+resulting value, and finally yield that value as the
+DEFINE-expression's value.
+
+This behavior isn't a capability security feature, it was just an easy
+way to implement DEFINE.  In fact, since it requires scopes to be
+extensible, it could be rather a bad idea in a more serious language
+design.  It's also potentially confusing since you can have code like
+this:
+
+  (let ((x 1))
+    (define (y) x)          ; x=2 here
+    (define x 2)
+    (y))
+
+  (let ((x 1))
+    (define y x)            ; x=1 here
+    (define x 2)
+    y)
+
+
+Miscellaneous constants
+
+These are needed in the implementation, and there was no reason not to
+expose them:
+
+(PANIC complaint . irritants) signals an error in the underlying
+Scheme system.  It may seem odd that this procedure is in the safe
+scope, but in general we aren't trying to stop DoS attacks -- you can
+do that just as easily with an endless loop.
+
+VOID is the void value we use when we don't want to return a
+meaningful value.  In the read-eval-print loop, as a special
+case, this value doesn't get printed.
+
+FILE-SEPARATOR is "/" when running under Unix.
+
+
+---------------------------------------------------------------------
+Part 3: The user-level environment built by admin.scm
+
+The Consp system boots up by loading boot.scm in the unsafe scope.
+This creates the environment seen by users, which is modified from the
+base language defined above.  The administrator is an ordinary user
+with rights to add to the user list and edit the system source code.
+
+The Scheme procedures that can open a file are restricted to act as if
+the OS's current directory were the user's private directory, and to
+refuse to open anything outside that subtree.  (It's still possible to
+grant access to some of your files to another user, by passing
+capabilities.)
+
+WHO-AM-I is a variable bound to your username.
+
+You can send a message to another user by calling (SEND username
+message) and retrieve your own messages with (FETCH-MAIL!).  By
+convention, a message is an a-list of headers (with the body bound to
+the 'body header).  Automatically prepended to the message is a
+'sender header with the username of the sender.  (A genuinely
+capability-oriented design would use objects instead of names, and
+you'd know the sender by unwrapping their private seal, but that sort
+of decentralized solution is more infrastructure than I wanted to get
+into yet.)
+
+Each user has a platform to broadcast from: (PUBLISH! key value) makes
+a value available under your own username, and (LOOKUP username key)
+returns the given user's published value for the given key (or #f if
+none).  Any fancier patterns of cooperation can be set up by passing
+appropriate capabilities over these predefined channels.
+
+There's a not-very-good module system predefined: (USE filename) loads
+filename in (essentially) the safe scope from the given file in the
+user's private tree.  The safe scope actually is extended with
+bindings for USE itself, plus the factory and sealer primitives (see
+below).  So any code loaded with USE is guaranteed confined.  (Other
+users could affect what gets loaded if you happen to give them the
+necessary capabilities to your own files, but that doesn't affect
+confinement of the result, and it's also your own lookout.)
+
+When you write an application you're encouraged to put most of the
+functionality in modules for USE, along with a small driver you LOAD
+which passes any needed capabilities to the modules USEd.  Currently,
+each time a module is USEd you get a different instance; if it were
+the same, that would break confinement.  (This is one reason it's a
+lousy module system.)
+
+Sometimes you want to be able to confine a program without first
+seeing its source.  MAKE-FACTORY and FACTORY-YIELD solve this problem.
+They could be defined by any user just as easily, but for this to be
+useful, different users must have references to the *same* factory
+brand.  Thus it's included in everyone's scope for convenience.
+(Alternatively we could use the publishing or mail features above to
+distribute it.)  You can see an example in action in loadme.scm.
+
+INTERACTIVE-SCOPE is bound to the mutable scope the user interacts
+with at the prompt.
+
+There are a couple more procedures provided at this level either for
+historical reasons or to avoid defining them multiple places:
+MAKE-SEALER and SNARF-PROGRAM.
+
+
+---------------------------------------------------------------------
+Part 4: Example programs
+
+voting
+money
+betting
+
+See loadme.scm and users/alice/.  Dunno how much they need
+explaining... see also http://erights.org and
+http://www.cap-lore.com/CapTheory/

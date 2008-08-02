@@ -1,0 +1,66 @@
+expose pure-scope to the users so they can define their own, better,
+module systems.
+
+recast the factory example as about confinement of authority
+
+better factoring:
+  disjoint datatype stuff (records, boxes, seals, vectors)
+
+how do we conveniently modularize code to supply to a factory?  ditto
+for publishing source-code libraries.  also, our current USE module
+system isn't very good either because modules don't have identity.
+
+move more of the initial services into regular user code
+
+Probably better to bite the bullet and make noninteractive scopes
+completely immutable.  Then we have to figure out how to make things
+as nice and convenient as (define ...) is presently.  How does
+Scheme48 do it?
+
+proposal for DEFINE, then:
+Scan an expression beforehand (or maybe just a LOCAL part a la PLT
+Scheme), producing a (let-uninitialized (var ...) expr ...) where the
+DEFINEs turn into (initialize! var expr).  Interaction scopes behave
+as if all not-already-bound variables are included in the implicit
+LET-UNINITIALIZED wrapper.  They also use SET! instead of INITIALIZE!
+
+pet-name support
+
+fancier mail and publishing systems with less dependence on the admin
+setup (using an infrastructure of pet names and authenticators)
+
+write up some documentation about all the qualities E has that we
+don't!
+
+-----------------------------------------------------------------------
+The language as defined is a pain to compile, because scopes are too
+mutable -- even our 'immutable' scopes are extensible.  This also
+constrains our scope representations.
+
+a safe environment that excludes mutation
+(i started out this way but it was inconvenient -- make it convenient)
+(i.e. better module system)
+
+auditors
+  (wait till scopes are immutable -- auditability depends on that just
+as much as compilability does)
+
+Once auditors are included (or something), we can enable USE caching
+again: you must ensure the value is DeepFrozen before you can cache
+it.
+
+persistence
+  (incompatible with the current design unless we exploit Scheme
+system internals... I think.  Though I think it can be OK as long as
+we stick in a new representation of procedures.  It's just, the
+annoying thing about that is you also have to reimplement apply, map,
+call-with-input-file, etc., etc., etc.)
+
+debugging
+  (ditto.  but we also need to use a system-specific hook to intercept
+errors raised by primitive procedures.)
+
+'safe' macros a la markm
+
+look up how T unifies our two different types of encapsulation
+(lambdas and records)
