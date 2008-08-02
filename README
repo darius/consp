@@ -1,0 +1,68 @@
+CONSP
+
+This is a demo of how to make a simple capability-secure language,
+with some tiny example applications.  It's derived from Jonathan
+Rees's "A Security Kernel Based on the Lambda-Calculus" -- see
+http://mumble.net/~jar/pubs/secureos/ and the related sites linked
+from there.
+
+The Scheme48 system (http://s48.org) includes a more complete and
+practical development of those ideas.  You may still find Consp worth
+studying because Scheme48 has much more code to dig through and its
+documentation doesn't emphasize the security properties as much.
+
+
+HOW TO GET STARTED
+
+0. Unpack http://accesscom.com/~darius/software/consp.tar.gz
+1. (Optional) Edit loadme.scm to supply a definition for the single
+   non-R4RS procedure used, PANIC.
+2. If you're on a non-Unix platform, change FILE-SEPARATOR (also in
+   loadme.scm).  (ASSERT-SAFE-PATH in admin.scm might need changing, 
+   too, but it's not urgent if you just want to play with the system.)
+3. Start up Scheme and enter (load "loadme.scm").
+4. Running (do-tests) should produce "All tests passed".
+   (regress) is another, older test, that prints some stuff out.
+5. You can bring up an interactive prompt with, for example,
+   (i-am 'alice)
+
+
+WHY YOU MIGHT WANT TO
+
+The security model of familiar operating systems like Unix and Windows
+wasn't brought down from Mount Sinai; I believe capability security is
+a much better way to live, both safer and easier to program, and
+through that combination raising the potential to build systems
+supporting more ambitious patterns of cooperation.  Consp is the
+smallest implementation of a capability-secure language I'm aware of
+(that's implemented in a language without that property, that is).  It
+can be this small because standard Scheme *almost* has the capability
+nature already; R5RS is even closer, I think, but I preferred to stick
+with R4RS.  So this is a playground for learning about capabilities,
+their applications, and how languages can support them.
+
+It's still a toy because I've done nothing for error handling and
+debugging -- any errors will drop you back into your underlying Scheme
+system.  It's also slow and nonconcurrent.  If you incorporate
+external libraries, you'll probably have to tame them first -- to
+expose their powers as delimited capabilities.  See the E language
+(http://erights.org) for an example of taming the Java libraries.
+
+
+CONTENTS
+
+  loadme.scm			The starting point
+  Manual.text   		The documentation
+  tests.scm			System self-tests and examples
+  users/			Private directories for each user
+  users/admin/consp.scm 	The Consp interpreter
+  users/admin/boot.scm		Consp code to boot up the system
+  Notes.text			Includes a list of fixed security bugs
+
+
+LICENSE & CONTACT
+
+Copyright 2004 Darius Bacon under the terms of the MIT X license
+found at http://www.opensource.org/licenses/mit-license.html
+
+Darius Bacon <darius@accesscom.com>
