@@ -54,7 +54,7 @@ possible leaks of authority via the underlying Scheme's return value.
 Other standard Scheme procedures
 
 Only R4RS's 'required' procedures are included; others can be added in
-the same way (see src/r4rs-bindings.scm), but I didn't want to depend
+the same way (see users/admin/consp.scm), but I didn't want to depend
 on them existing in the underlying Scheme.
 
 
@@ -281,7 +281,7 @@ They could be defined by any user just as easily, but for this to be
 useful, different users must have references to the *same* factory
 brand.  Thus it's included in everyone's scope for convenience.
 (Alternatively we could use the publishing or mail features above to
-distribute it.)  You can see an example in action in loadme.scm.
+distribute it.)  You can see an example in action in tests.scm.
 
 INTERACTIVE-SCOPE is bound to the mutable scope the user interacts
 with at the prompt.
@@ -298,6 +298,6 @@ voting
 money
 betting
 
-See loadme.scm and users/alice/.  Dunno how much they need
+See tests.scm and users/alice/.  Dunno how much they need
 explaining... see also http://erights.org and
 http://www.cap-lore.com/CapTheory/
