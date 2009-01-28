@@ -29,9 +29,9 @@
               (panic "Not an instance of" name record))
           (vector-set! record i value)
           void)))
-    (define getters (map-n make-getter arity))
-    (define setters (if mutable? (map-n make-setter arity) '()))
-    `(,make-instance ,instance? ,@getters ,@setters)))
+    (let ((getters (map-n make-getter arity))
+          (setters (if mutable? (map-n make-setter arity) '())))
+      `(,make-instance ,instance? ,@getters ,@setters))))
 
 (define record-tag (list 'record))
 
