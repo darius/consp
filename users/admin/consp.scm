@@ -6,8 +6,8 @@
 ;; Misc helper functions
 
 (define (assert ok?)
-  (if (not ok?)
-      (panic "Assertion failed"))
+  (cond ((not ok?)
+         (panic "Assertion failed")))
   void)
 
 (define (snarf-program filename)
@@ -139,8 +139,8 @@
   (panic "Syntax error" message irritants))
 
 (define (insist exp ok?)
-  (if (not ok?)
-      (syntax-error "Bad syntax" exp)))
+  (cond ((not ok?)
+         (syntax-error "Bad syntax" exp))))
 
 
 ;; R4RS special forms
@@ -217,9 +217,9 @@
       ((null? (cdar rands))
        `(or ,(caar rands) (cond ,@(cdr rands))))
       ((and (pair? (cdar rands)) (eq? (cadar rands) '=>))
-       (if (not (and (list? (car rands))
-                     (= (length (car rands)) 3)))
-           (syntax-error "Bad cond clause syntax" rands))
+       (cond ((not (and (list? (car rands))
+                        (= (length (car rands)) 3)))
+              (syntax-error "Bad cond clause syntax" rands)))
        (let ((test-var (gentemp)))
          `(let ((,test-var ,(caar rands)))
             (if ,test-var
@@ -312,7 +312,7 @@
 
 (define (expand-quasiquote exp nesting)
   (define (insist ok?)
-    (if (not ok?) (syntax-error "Bad syntax" exp)))
+    (cond ((not ok?) (syntax-error "Bad syntax" exp))))
   (cond
    ((vector? exp)
     `(,list->vector ,(expand-quasiquote (vector->list exp) nesting)))
@@ -413,13 +413,13 @@
 (define scope.set-frame! (list-ref scope-type 6))
 
 (define (extend r vars vals)
-  (if (and r (not (scope? r)))
-      (panic "Not a scope" r))
+  (cond ((and r (not (scope? r)))
+         (panic "Not a scope" r)))
   (make-scope r (map cons vars vals) #f))
 
 (define (meta-sprout-mutable r)
-  (if (and r (not (scope? r)))
-      (panic "Not a scope" r))
+  (cond ((and r (not (scope? r)))
+         (panic "Not a scope" r)))
   (make-scope r '() #t))
 
 (define (meta-sprout r)
@@ -436,8 +436,8 @@
    (acons var val
           (cond ((assq var (scope.frame r))
                  => (lambda (binding) 
-                      (if (not (scope.mutable? r))
-                          (panic "DEFINE misused to assign" var))
+                      (cond ((not (scope.mutable? r))
+                             (panic "DEFINE misused to assign" var)))
                       (delq binding (scope.frame r))))
                 (else (scope.frame r))))))
 
