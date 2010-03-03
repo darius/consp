@@ -289,9 +289,11 @@
 
 ;; The admin is an ordinary user with a couple of extra powers: to add
 ;; to and view the user list, and to edit the system source code
-;; (since that's placed in the admin's directory tree).  A full
-;; non-toy system would need some extra administrator powers, like
-;; deleting users.  It's tempting to give the admin full root
+;; (since that's placed in the admin's directory tree).  (The admin
+;; can delete a user by adding a dummy with the same name; to mess
+;; with the user any further they'd have to hack the system source and
+;; restart.)  A full non-toy system might need some extra
+;; administrator powers.  It's tempting to give the admin full root
 ;; privileges to be able to cope with anything that can possibly come
 ;; up -- I'm curious how needful that would be in practice.  It's not
 ;; even possible in an open distributed system.
