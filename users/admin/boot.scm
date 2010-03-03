@@ -179,9 +179,9 @@
 ;; Mailboxes
 
 (define mailbox-type (make-record-type 'mailbox 1 #f))
-(define make-mailbox      (list-ref mailbox-type 0))
-(define mailbox?          (list-ref mailbox-type 1))
-(define mailbox.inbox     (list-ref mailbox-type 2))
+(define make-mailbox  (list-ref mailbox-type 0))
+(define mailbox?      (list-ref mailbox-type 1))
+(define mailbox.inbox (list-ref mailbox-type 2))
 
 (define (build-mailbox)
   (make-mailbox (box '())))
