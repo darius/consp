@@ -88,11 +88,11 @@ options in this message and call the corresponding thunks.")
   (i-am 'carol '(define (fetch key) (cdr (assoc key _))))
   (i-am 'bob   '(begin (define _ (fetch-mail!))
                        (import (lookup 'alice 'money) 
-                        purse? make-purse purse-balance purse-transfer!)
+                               purse? make-purse purse-balance purse-transfer!)
                        (define my-purse (fetch 'purse))))
   (i-am 'carol '(begin (define _ (fetch-mail!))
                        (import (lookup 'alice 'money) 
-                        purse? make-purse purse-balance purse-transfer!)
+                               purse? make-purse purse-balance purse-transfer!)
                        (define my-purse (fetch 'purse))))
   
   ;; Now set up a bet.
