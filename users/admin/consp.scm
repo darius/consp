@@ -145,7 +145,7 @@
 
 ;; R4RS special forms
 ;; This is a hacked extract from the UTS Scheme implementation at
-;; http://accesscom.com/~darius
+;; http://wry.me/~darius
 
 (define-expander 'let
   (lambda (expr rands)

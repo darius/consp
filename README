@@ -14,7 +14,7 @@ documentation doesn't emphasize the security properties as much.
 
 HOW TO GET STARTED
 
-0. Unpack http://accesscom.com/~darius/software/consp.tar.gz
+0. Download and unpack from http://github.com/darius/consp.
 1. (Optional) Edit loadme.scm to supply a definition for the single
    non-R4RS procedure used, PANIC.
 2. If you're on a non-Unix platform, change FILE-SEPARATOR (also in
