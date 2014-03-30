@@ -1,3 +1,11 @@
+to do:
+In tests.scm, use make-bet-observer, or why did I define it?
+Ah, it won't fly because it can transfer in either direction 
+between two purses, but what we want is to first transfer from
+both to the judge's purse, then transfer that to the winner.
+So a better idea is to move the tests.scm logic into betting.scm
+instead.
+
 Scopes and macros:
 
 You get hygienic macros by expanding directly into the constant value
